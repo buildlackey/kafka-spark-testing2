@@ -1,0 +1,94 @@
+buildscript {
+  repositories {
+    jcenter()
+    mavenCentral()
+  }
+  dependencies {
+    classpath "com.avast.gradle:gradle-docker-compose-plugin:0.10.9"
+  }
+}
+
+plugins {
+  id 'java'
+  id 'checkstyle'
+}
+
+
+apply plugin: 'docker-compose'
+apply plugin: 'checkstyle'
+apply plugin: 'java'
+
+java {
+  sourceCompatibility = JavaVersion.VERSION_1_8
+  targetCompatibility = JavaVersion.VERSION_1_8
+}
+
+repositories {
+  jcenter()
+  mavenCentral()
+}
+
+
+sourceSets {
+  integrationTest {
+    java {
+      compileClasspath += main.output + test.output
+      runtimeClasspath += main.output + test.output
+      srcDir file('src/integration-test/java')
+    }
+    resources.srcDirs 'src/integration-test/resources', 'src/test/resources'
+  }
+}
+
+configurations {
+  integrationTestCompile.extendsFrom testCompile
+}
+
+
+task integrationTest(type: Test) {
+  testClassesDirs = sourceSets.integrationTest.output.classesDirs
+  classpath = sourceSets.integrationTest.runtimeClasspath
+}
+
+integrationTest {
+  useTestNG() { useDefaultListeners = true }
+}
+
+dockerCompose.isRequiredBy(integrationTest)
+
+
+dependencies {
+  compile group: 'com.typesafe', name: 'config', version: '1.4.0'
+  compile group: 'com.google.guava', name: 'guava', version: '19.0'
+
+  compileOnly group: 'org.apache.spark', name: 'spark-sql_2.12', version: '2.4.0'
+  testCompile group: 'org.apache.spark', name: 'spark-sql_2.12', version: '2.4.0'
+
+  testCompile group: 'org.apache.spark', name: 'spark-sql-kafka-0-10_2.12', version: '2.4.0'
+
+  testCompile group: 'org.testng', name: 'testng', version: '6.8'
+  testCompile group: 'org.springframework.kafka', name: 'spring-kafka-test', version: '2.4.4.RELEASE'
+}
+
+
+dockerCompose {
+  useComposeFiles = ['src/test/resources/docker-compose.yml']
+
+  // We leave containers up in case we want to do forensic analysis on results of tests
+  stopContainers = false
+  removeContainers = false  // default is true
+  removeImages = "None"     // Other accepted values are: "All" and "Local"
+  removeVolumes = false     // default is true
+  removeOrphans = false     // removes contain
+}
+
+checkstyle {
+  toolVersion '7.8.1'
+  config = rootProject.resources.text.fromFile("gradle/style/rules.xml")
+  maxWarnings = 0
+}
+
+test {
+  useTestNG() { useDefaultListeners = true }
+}
+
