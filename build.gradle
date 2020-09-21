@@ -9,14 +9,14 @@ buildscript {
 }
 
 plugins {
-  id 'java'
-  id 'checkstyle'
+  id "java"
+  id "checkstyle"
 }
 
 
-apply plugin: 'docker-compose'
-apply plugin: 'checkstyle'
-apply plugin: 'java'
+apply plugin: "docker-compose"
+apply plugin: "checkstyle"
+apply plugin: "java"
 
 java {
   sourceCompatibility = JavaVersion.VERSION_1_8
@@ -34,9 +34,9 @@ sourceSets {
     java {
       compileClasspath += main.output + test.output
       runtimeClasspath += main.output + test.output
-      srcDir file('src/integration-test/java')
+      srcDir file("src/integration-test/java")
     }
-    resources.srcDirs 'src/integration-test/resources', 'src/test/resources'
+    resources.srcDirs "src/integration-test/resources", "src/test/resources"
   }
 }
 
@@ -56,23 +56,28 @@ integrationTest {
 
 dockerCompose.isRequiredBy(integrationTest)
 
+ext {
+  scala_version = "2.12"
+  spark_version = "3.0.1"
+  spring_kafka_test_version = "2.4.4.RELEASE"
+}
 
 dependencies {
-  compile group: 'com.typesafe', name: 'config', version: '1.4.0'
-  compile group: 'com.google.guava', name: 'guava', version: '19.0'
+  compile group: "com.typesafe", name: "config", version: "1.4.0"
+  compile group: "com.google.guava", name: "guava", version: "19.0"
 
-  compileOnly group: 'org.apache.spark', name: 'spark-sql_2.12', version: '2.4.0'
-  testCompile group: 'org.apache.spark', name: 'spark-sql_2.12', version: '2.4.0'
+  compileOnly group: "org.apache.spark", name: "spark-sql_${scala_version}", version: "${spark_version}"
+  testCompile group: "org.apache.spark", name: "spark-sql_${scala_version}", version: "${spark_version}"
 
-  testCompile group: 'org.apache.spark', name: 'spark-sql-kafka-0-10_2.12', version: '2.4.0'
+  testCompile group: "org.apache.spark", name: "spark-sql-kafka-0-10_${scala_version}", version: "${spark_version}"
 
-  testCompile group: 'org.testng', name: 'testng', version: '6.8'
-  testCompile group: 'org.springframework.kafka', name: 'spring-kafka-test', version: '2.4.4.RELEASE'
+  testCompile group: "org.testng", name: "testng", version: "6.8"
+  testCompile group: "org.springframework.kafka", name: "spring-kafka-test", version: "2.4.4.RELEASE"
 }
 
 
 dockerCompose {
-  useComposeFiles = ['src/test/resources/docker-compose.yml']
+  useComposeFiles = ["src/test/resources/docker-compose.yml"]
 
   // We leave containers up in case we want to do forensic analysis on results of tests
   stopContainers = false
@@ -83,7 +88,7 @@ dockerCompose {
 }
 
 checkstyle {
-  toolVersion '7.8.1'
+  toolVersion "7.8.1"
   config = rootProject.resources.text.fromFile("gradle/style/rules.xml")
   maxWarnings = 0
 }
