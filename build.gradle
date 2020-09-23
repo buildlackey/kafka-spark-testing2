@@ -45,9 +45,9 @@ integrationTest {
 dockerCompose.isRequiredBy(integrationTest)
 
 ext {
-  scala_version = "2.12"
-  spark_version = "3.0.1"
-  spring_kafka_test_version = "2.4.4.RELEASE"
+  scala_version = "2.11"
+  spark_version = "2.4.1"
+  spring_kafka_test_version = "2.2.7.RELEASE"
 }
 
 dependencies {
@@ -84,3 +84,14 @@ checkstyle {
 test {
   useTestNG() { useDefaultListeners = true }
 }
+
+
+// Force jackson-databind dependency to what Spark sql and Spark core want and avoid what "spring-kafka-test"
+// tries to bring in.  If we don't do this, we get "JsonMappingException: Incompatible Jackson version: 2.9.7"
+// when we run tests.
+configurations.all {
+  resolutionStrategy {
+    force 'com.fasterxml.jackson.core:jackson-databind:2.6.7.1'
+  }
+}
+
