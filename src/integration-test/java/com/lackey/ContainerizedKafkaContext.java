@@ -25,7 +25,9 @@ public class ContainerizedKafkaContext implements KafkaContext {
     CreateTopicsResult result = adminClient.createTopics(topicList);
 
     KafkaFuture<Void> future = result.all();
-    future.get(); // Wait until done. Nothing stops waiting forever, so build should time out with error eventually.
+
+    // Wait until done. Nothing stops this from waiting forever, so we should make build time out with error .
+    future.get();
   }
 
   @Override
